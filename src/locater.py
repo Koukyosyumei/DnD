@@ -8,6 +8,11 @@ def locate(proj):
     '''
     loop_finder = proj.cfg.project.analyses.LoopFinder(kb=proj.cfg.kb)
     
+    """
+    DND first identifies the locations of the functions with possible tensor computation (i.e., containing two or
+    more nested loops or invoking math functions in the standard
+    library) as DNN operator candidates.
+    """
     # look for candidate op_func
     cand_op_func = []
     for f_addr in proj.cfg.kb.functions:
@@ -24,7 +29,12 @@ def locate(proj):
         if loop_flag or math_flag:
             cand_op_func.append(f_addr)
     print("cand_op_func: ", [(hex(f), proj.funcs[f]) for f in cand_op_func])
-                
+
+    """
+    Then, DND collects the caller functions of each function in the candidate list. Among
+    these caller functions, the one calling most candidates is considered as the “inference function” (i.e., acting as the DNN
+    binary’s dispatch function)
+    """  
     # vote for "dispatch function"
     vote_dict = defaultdict(int)
     for f_addr in cand_op_func:

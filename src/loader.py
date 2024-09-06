@@ -45,6 +45,11 @@ def load(bin_path, dispatch_addr=None, arch=None):
         print(e)
         proj = angr.Project(bin_path, main_opts={"base_addr": 0x10000, "arch": "thumb"})
 
+    """
+    DND recovers the control flow graph
+    (CFG) and identifies the location of inference function and
+    DNN operators from the input (stripped) DNN binary
+    """
     print("Building CFG")
     proj.cfg = proj.analyses.CFGFast(normalize=True)
     proj.funcs = proj.cfg.kb.functions
@@ -70,7 +75,7 @@ def load(bin_path, dispatch_addr=None, arch=None):
         # collect analysis_funcs
         proj.analysis_funcs = [
             func.addr
-            for func in list(proj.funcs[dispatch_addr].functions_called())
+            for func in list(proj.funcs[dispatch_addr].functions_reachable())
             if "sys" not in proj.funcs[func.addr].name
             and "sub" not in proj.funcs[func.addr].name
             and not proj.funcs[func.addr].name.startswith("_")
@@ -259,7 +264,7 @@ def prop_func_arg(proj, dispatch_addr):
     for f_addr in proj.funcs:
         if (
             dispatch_addr
-            in [func.addr for func in list(proj.funcs[f_addr].functions_called())]
+            in [func.addr for func in list(proj.funcs[f_addr].functions_reachable())]
             and proj.funcs[f_addr].has_return
         ):
             dispatch_caller_addr = f_addr

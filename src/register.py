@@ -16,10 +16,10 @@ class RegisterView():
 
         if is_arm_arch(self._arch):
             for idx in range(10):
-                val = getattr(state.regs, 'r' + str(idx)).ast
+                val = getattr(state.regs, 'r' + str(idx))
                 self._backend.append(val)
 
-            self._backend.append(state.regs.lr.ast)
+            self._backend.append(state.regs.lr)
 
         else:
             assert (False)
